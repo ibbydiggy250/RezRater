@@ -5,7 +5,7 @@ const config: Config = {
   theme: {
     extend: {
       boxShadow: {
-        glow: "0 18px 45px rgba(7, 59, 76, 0.16)"
+        glow: "0 22px 48px rgba(22, 61, 107, 0.12)"
       },
       borderRadius: {
         panel: "1.5rem"

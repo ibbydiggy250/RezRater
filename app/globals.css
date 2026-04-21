@@ -3,17 +3,21 @@
 @tailwind utilities;
 
 :root {
-  --background: #f7f3ea;
-  --foreground: #102a43;
-  --muted: #6d7a89;
-  --panel: rgba(255, 255, 255, 0.82);
-  --panel-strong: rgba(255, 255, 255, 0.94);
-  --border: rgba(16, 42, 67, 0.1);
-  --brand-deep: #073b4c;
-  --brand-warm: #f4a261;
-  --brand-soft: #f3e7d3;
-  --brand-accent: #2a9d8f;
-  --danger: #9f3a38;
+  --background: #eef3f9;
+  --foreground: #12233d;
+  --muted: #5f6d82;
+  --panel: rgba(247, 250, 255, 0.8);
+  --panel-strong: rgba(255, 255, 255, 0.92);
+  --border: rgba(18, 35, 61, 0.1);
+  --brand-deep: #163d6b;
+  --brand-blue: #315d92;
+  --brand-soft: #e4ebf5;
+  --brand-accent: #a62231;
+  --brand-accent-soft: rgba(166, 34, 49, 0.1);
+  --brand-blue-soft: rgba(49, 93, 146, 0.12);
+  --danger: #8f2230;
+  --success-bg: rgba(49, 93, 146, 0.12);
+  --success-foreground: #163d6b;
 }
 
 * {
@@ -28,9 +32,9 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(244, 162, 97, 0.2), transparent 30%),
-    radial-gradient(circle at 85% 10%, rgba(42, 157, 143, 0.14), transparent 22%),
-    linear-gradient(180deg, #fbf7ef 0%, #f6f0e2 52%, #efe4cf 100%);
+    radial-gradient(circle at top left, rgba(166, 34, 49, 0.1), transparent 28%),
+    radial-gradient(circle at 85% 10%, rgba(49, 93, 146, 0.16), transparent 24%),
+    linear-gradient(180deg, #f7f9fc 0%, #eef3f9 48%, #e7edf6 100%);
   color: var(--foreground);
 }
 
@@ -39,8 +43,8 @@ body::before {
   inset: 0;
   z-index: -1;
   background-image:
-    linear-gradient(rgba(16, 42, 67, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(16, 42, 67, 0.04) 1px, transparent 1px);
+    linear-gradient(rgba(22, 61, 107, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(22, 61, 107, 0.04) 1px, transparent 1px);
   background-size: 32px 32px;
   content: "";
   mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.8), transparent 90%);
@@ -52,7 +56,7 @@ a {
 }
 
 ::selection {
-  background: rgba(244, 162, 97, 0.32);
+  background: rgba(166, 34, 49, 0.2);
 }
 
 @layer components {
@@ -81,22 +85,33 @@ a {
   }
 
   .pill {
-    @apply inline-flex items-center rounded-full border border-[color:var(--border)] bg-white/70 px-3 py-1 text-sm font-medium text-[color:var(--foreground)];
+    @apply inline-flex items-center rounded-full border border-[color:var(--border)] bg-white/80 px-3 py-1 text-sm font-medium text-[color:var(--foreground)];
   }
 
   .field {
-    @apply w-full rounded-2xl border border-[color:var(--border)] bg-white px-4 py-3 text-sm text-[color:var(--foreground)] outline-none transition focus:border-[color:var(--brand-accent)] focus:ring-2 focus:ring-[color:rgba(42,157,143,0.18)];
+    @apply w-full rounded-2xl border border-[color:var(--border)] bg-white px-4 py-3 text-sm text-[color:var(--foreground)] outline-none transition focus:border-[color:var(--brand-deep)] focus:ring-2 focus:ring-[color:var(--brand-blue-soft)];
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-full bg-[color:var(--brand-deep)] px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#0b536b];
+    @apply inline-flex items-center justify-center rounded-full bg-[color:var(--brand-deep)] px-5 py-3 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(22,61,107,0.18)] transition hover:-translate-y-0.5 hover:bg-[color:var(--brand-blue)];
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-full border border-[color:var(--border)] bg-white/80 px-5 py-3 text-sm font-semibold text-[color:var(--foreground)] transition hover:-translate-y-0.5 hover:bg-white;
+    @apply inline-flex items-center justify-center rounded-full border border-[color:rgba(22,61,107,0.12)] bg-white/80 px-5 py-3 text-sm font-semibold text-[color:var(--foreground)] transition hover:-translate-y-0.5 hover:border-[color:rgba(166,34,49,0.18)] hover:bg-white;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium text-[color:var(--foreground)] transition hover:bg-white/70;
+    @apply inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium text-[color:var(--foreground)] transition hover:bg-[color:var(--brand-blue-soft)];
+  }
+
+  .feedback-error {
+    @apply rounded-2xl px-4 py-3 text-sm text-[color:var(--danger)];
+    background: var(--brand-accent-soft);
+  }
+
+  .feedback-success {
+    @apply rounded-2xl px-4 py-3 text-sm;
+    background: var(--success-bg);
+    color: var(--success-foreground);
   }
 }

@@ -37,13 +37,13 @@ export function LoginForm({ action, initialState, next }: LoginFormProps) {
         </label>
 
         {state.error ? (
-          <p className="rounded-2xl bg-[color:rgba(159,58,56,0.08)] px-4 py-3 text-sm text-[color:var(--danger)]">
+          <p className="feedback-error">
             {state.error}
           </p>
         ) : null}
 
         {state.success ? (
-          <p className="rounded-2xl bg-[color:rgba(42,157,143,0.1)] px-4 py-3 text-sm text-[color:var(--brand-deep)]">
+          <p className="feedback-success">
             {state.success}
           </p>
         ) : null}
