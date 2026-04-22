@@ -37,6 +37,9 @@ export function SiteHeader({ userEmail }: SiteHeaderProps) {
             <Link href="/quads" className="navbar-link">
               Browse Dorms
             </Link>
+            <Link href="/compare" className="navbar-link">
+              Compare Dorms
+            </Link>
             <Link href="/review" className="navbar-link">
               Leave a Review
             </Link>
