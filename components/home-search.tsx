@@ -3,49 +3,87 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { startTransition, useDeferredValue, useState } from "react";
-import type { HomeSearchBuilding } from "@/lib/types";
+import { startNavigationProgress } from "@/components/navigation-progress";
+import type { HomeQuickViewQuad, HomeSearchBuilding } from "@/lib/types";
 
 type HomeSearchProps = {
   buildings: HomeSearchBuilding[];
+  quads: HomeQuickViewQuad[];
   variant?: "default" | "hero";
   showHelper?: boolean;
+};
+
+type SearchResult = {
+  id: string;
+  name: string;
+  subtitle: string;
+  href: string;
+  type: "Community" | "Dorm";
 };
 
 function normalize(value: string) {
   return value.trim().toLowerCase();
 }
 
-function getMatches(buildings: HomeSearchBuilding[], query: string) {
+function getSearchResults(buildings: HomeSearchBuilding[], quads: HomeQuickViewQuad[]) {
+  return [
+    ...quads.map((quad) => ({
+      id: `quad-${quad.id}`,
+      name: quad.name,
+      subtitle: "Community",
+      href: `/quads/${quad.slug}`,
+      type: "Community" as const
+    })),
+    ...buildings.map((building) => ({
+      id: `building-${building.id}`,
+      name: building.name,
+      subtitle: building.quadName,
+      href: `/buildings/${building.slug}`,
+      type: "Dorm" as const
+    }))
+  ];
+}
+
+function getMatches(results: SearchResult[], query: string) {
   const normalizedQuery = normalize(query);
 
   if (!normalizedQuery) {
     return [];
   }
 
-  const startsWithMatches = buildings.filter((building) =>
-    normalize(building.name).startsWith(normalizedQuery)
-  );
+  const startsWithMatches = results.filter((result) => normalize(result.name).startsWith(normalizedQuery));
 
-  const includesMatches = buildings.filter((building) => {
-    const buildingName = normalize(building.name);
-    return !buildingName.startsWith(normalizedQuery) && buildingName.includes(normalizedQuery);
+  const includesMatches = results.filter((result) => {
+    const resultName = normalize(result.name);
+    const subtitle = normalize(result.subtitle);
+    return (
+      !resultName.startsWith(normalizedQuery) &&
+      (resultName.includes(normalizedQuery) || subtitle.includes(normalizedQuery))
+    );
   });
 
   return [...startsWithMatches, ...includesMatches].slice(0, 6);
 }
 
-export function HomeSearch({ buildings, variant = "default", showHelper = true }: HomeSearchProps) {
+export function HomeSearch({
+  buildings,
+  quads,
+  variant = "default",
+  showHelper = true
+}: HomeSearchProps) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
   const deferredQuery = useDeferredValue(query);
-  const matches = getMatches(buildings, deferredQuery);
+  const results = getSearchResults(buildings, quads);
+  const matches = getMatches(results, deferredQuery);
   const isHero = variant === "hero";
 
-  function openBuilding(slug: string) {
+  function openResult(href: string) {
     setError(null);
+    startNavigationProgress();
     startTransition(() => {
-      router.push(`/buildings/${slug}`);
+      router.push(href);
     });
   }
 
@@ -54,19 +92,18 @@ export function HomeSearch({ buildings, variant = "default", showHelper = true }
 
     const normalizedQuery = normalize(query);
     if (!normalizedQuery) {
-      setError("Enter a building name to jump to a dorm page.");
+      setError("Enter a building or community name.");
       return;
     }
 
-    const exactMatch =
-      buildings.find((building) => normalize(building.name) === normalizedQuery) ?? matches[0];
+    const exactMatch = results.find((result) => normalize(result.name) === normalizedQuery) ?? matches[0];
 
     if (!exactMatch) {
-      setError(`No building matched "${query.trim()}".`);
+      setError(`No building or community matched "${query.trim()}".`);
       return;
     }
 
-    openBuilding(exactMatch.slug);
+    openResult(exactMatch.href);
   }
 
   return (
@@ -80,7 +117,7 @@ export function HomeSearch({ buildings, variant = "default", showHelper = true }
         }
       >
         <label htmlFor="home-building-search" className="sr-only">
-          Search for a building
+          Search for a building or community
         </label>
         <div className={isHero ? "flex gap-2" : "flex flex-col gap-3 sm:flex-row"}>
           <input
@@ -93,7 +130,7 @@ export function HomeSearch({ buildings, variant = "default", showHelper = true }
                 setError(null);
               }
             }}
-            placeholder="Search by building name, like Yang Hall"
+            placeholder="Search by building or community, like Yang Hall or Kelly"
             className={
               isHero
                 ? "min-w-0 flex-1 rounded-full border border-transparent bg-transparent px-4 py-3 text-sm text-[color:var(--foreground)] outline-none placeholder:text-[color:rgba(18,35,61,0.48)] focus:border-[color:rgba(22,61,107,0.18)] sm:px-5 sm:text-base"
@@ -116,15 +153,24 @@ export function HomeSearch({ buildings, variant = "default", showHelper = true }
               : "panel flex flex-wrap gap-2 px-4 py-3"
           }
         >
-          {matches.map((building) => (
+          {matches.map((result) => (
             <button
-              key={building.id}
+              key={result.id}
               type="button"
-              onClick={() => openBuilding(building.slug)}
+              onClick={() => openResult(result.href)}
               className="rounded-full border border-[color:var(--border)] bg-white/90 px-4 py-2 text-left text-sm transition hover:border-[color:rgba(166,34,49,0.18)] hover:bg-white"
             >
-              <span className="font-semibold text-[color:var(--foreground)]">{building.name}</span>
-              <span className="ml-2 text-[color:var(--muted)]">{building.quadName}</span>
+              <span className="font-semibold text-[color:var(--foreground)]">{result.name}</span>
+              <span className="ml-2 text-[color:var(--muted)]">{result.subtitle}</span>
+              <span
+                className={
+                  result.type === "Community"
+                    ? "ml-2 text-[color:var(--brand-blue)]"
+                    : "ml-2 text-[color:var(--brand-accent)]"
+                }
+              >
+                {result.type}
+              </span>
             </button>
           ))}
         </div>
@@ -132,7 +178,7 @@ export function HomeSearch({ buildings, variant = "default", showHelper = true }
 
       {showHelper ? (
         <p className="text-sm text-[color:var(--muted)]">
-          Try a hall name like `Yang`, `Tubman`, or `West A`, or{" "}
+          Try a hall name like `Yang` or a community like `Kelly`, or{" "}
           <Link href="/quads" className="font-semibold text-[color:var(--brand-deep)]">
             browse all communities
           </Link>

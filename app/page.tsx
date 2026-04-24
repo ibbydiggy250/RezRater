@@ -81,7 +81,7 @@ export default async function HomePage() {
           </p>
 
           <div className="mt-9 w-full">
-            <HomeSearch buildings={buildings} variant="hero" showHelper={false} />
+            <HomeSearch buildings={buildings} quads={quads} variant="hero" showHelper={false} />
           </div>
 
           <div className="mt-7 flex flex-wrap justify-center gap-3">
