@@ -11,6 +11,7 @@ import type {
   ReviewFormQuad,
   ReviewRecord
 } from "@/lib/types";
+import { sanitizePlainText } from "@/lib/security";
 import { average, formatDateLabel } from "@/lib/utils";
 
 export function hasSupabaseEnv() {
@@ -68,9 +69,18 @@ async function getQuadsWithBuildings(): Promise<QuadRecord[]> {
 
   return ((data ?? []) as QuadRecord[]).map((quad) => ({
     ...quad,
+    name: sanitizePlainText(quad.name),
+    slug: sanitizePlainText(quad.slug),
     buildings: (quad.buildings ?? []).map((building) => ({
       ...building,
-      reviews: (building.reviews ?? []) as ReviewRecord[]
+      name: sanitizePlainText(building.name),
+      slug: sanitizePlainText(building.slug),
+      reviews: ((building.reviews ?? []) as ReviewRecord[]).map((review) => ({
+        ...review,
+        review_text: sanitizePlainText(review.review_text),
+        pros_text: review.pros_text ? sanitizePlainText(review.pros_text) : null,
+        cons_text: review.cons_text ? sanitizePlainText(review.cons_text) : null
+      }))
     }))
   }));
 }
@@ -266,15 +276,24 @@ export async function getBuildingPageData(buildingSlug: string): Promise<Buildin
 
   return {
     id: data.id,
-    name: data.name,
-    slug: data.slug,
+    name: sanitizePlainText(data.name),
+    slug: sanitizePlainText(data.slug),
     type: data.type,
     hasKitchen: data.has_kitchen,
-    quad: Array.isArray(data.quad) ? data.quad[0] : data.quad,
+    quad: {
+      ...(Array.isArray(data.quad) ? data.quad[0] : data.quad),
+      name: sanitizePlainText((Array.isArray(data.quad) ? data.quad[0] : data.quad).name),
+      slug: sanitizePlainText((Array.isArray(data.quad) ? data.quad[0] : data.quad).slug)
+    },
     averageRating: average(reviews.map((review) => review.overall_rating)),
     reviewCount: reviews.length,
     categoryAverages,
-    reviews
+    reviews: reviews.map((review) => ({
+      ...review,
+      review_text: sanitizePlainText(review.review_text),
+      pros_text: review.pros_text ? sanitizePlainText(review.pros_text) : null,
+      cons_text: review.cons_text ? sanitizePlainText(review.cons_text) : null
+    }))
   };
 }
 

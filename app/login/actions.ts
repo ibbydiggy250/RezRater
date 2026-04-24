@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/data";
+import { consumeRateLimit, sanitizePlainText } from "@/lib/security";
 import { isSbuEmail } from "@/lib/utils";
 
 export type LoginState = {
@@ -15,8 +16,8 @@ export async function requestMagicLink(
   _prevState: LoginState,
   formData: FormData
 ): Promise<LoginState> {
-  const email = formData.get("email")?.toString().trim().toLowerCase() ?? "";
-  const next = formData.get("next")?.toString().trim() || "/review";
+  const email = sanitizePlainText(formData.get("email")?.toString() ?? "").toLowerCase();
+  const next = sanitizePlainText(formData.get("next")?.toString() ?? "") || "/review";
 
   if (!hasSupabaseEnv()) {
     return {
@@ -33,6 +34,24 @@ export async function requestMagicLink(
   }
 
   const headerStore = await headers();
+  const clientIp =
+    headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    headerStore.get("x-real-ip") ??
+    "unknown";
+
+  if (
+    !consumeRateLimit({
+      key: `magic-link:${email}:${clientIp}`,
+      limit: 5,
+      windowMs: 15 * 60 * 1000
+    })
+  ) {
+    return {
+      error: "Too many login attempts. Please try again later.",
+      success: null
+    };
+  }
+
   const origin =
     headerStore.get("origin") ??
     process.env.NEXT_PUBLIC_SITE_URL ??
@@ -48,7 +67,7 @@ export async function requestMagicLink(
 
   if (error) {
     return {
-      error: error.message,
+      error: "Magic link could not be sent. Please try again.",
       success: null
     };
   }

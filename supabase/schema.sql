@@ -60,9 +60,34 @@ create table if not exists public.reviews (
   pros_text text,
   cons_text text,
   class_year_when_lived public.class_year not null,
+  approved boolean not null default true,
   created_at timestamptz not null default timezone('utc', now()),
   unique (user_id, building_id)
 );
+
+alter table public.reviews
+add column if not exists approved boolean not null default true;
+
+alter table public.reviews
+drop constraint if exists reviews_review_text_length;
+
+alter table public.reviews
+add constraint reviews_review_text_length
+check (length(trim(review_text)) between 10 and 2000);
+
+alter table public.reviews
+drop constraint if exists reviews_pros_text_length;
+
+alter table public.reviews
+add constraint reviews_pros_text_length
+check (pros_text is null or length(trim(pros_text)) <= 1000);
+
+alter table public.reviews
+drop constraint if exists reviews_cons_text_length;
+
+alter table public.reviews
+add constraint reviews_cons_text_length
+check (cons_text is null or length(trim(cons_text)) <= 1000);
 
 create or replace function public.handle_new_user()
 returns trigger
@@ -111,7 +136,8 @@ using (true);
 drop policy if exists "Public can read reviews" on public.reviews;
 create policy "Public can read reviews"
 on public.reviews for select
-using (true);
+to anon, authenticated
+using (approved = true);
 
 drop policy if exists "Users can read own profile" on public.profiles;
 create policy "Users can read own profile"
@@ -122,10 +148,23 @@ drop policy if exists "Users can insert own review" on public.reviews;
 create policy "Users can insert own review"
 on public.reviews for insert
 to authenticated
-with check (auth.uid() = user_id);
+with check (auth.uid() = user_id and approved = true);
 
 drop policy if exists "Users can read own reviews" on public.reviews;
 create policy "Users can read own reviews"
 on public.reviews for select
 to authenticated
-using (true);
+using (auth.uid() = user_id);
+
+drop policy if exists "Users can update own review" on public.reviews;
+create policy "Users can update own review"
+on public.reviews for update
+to authenticated
+using (auth.uid() = user_id and approved = true)
+with check (auth.uid() = user_id and approved = true);
+
+drop policy if exists "Users can delete own review" on public.reviews;
+create policy "Users can delete own review"
+on public.reviews for delete
+to authenticated
+using (auth.uid() = user_id);

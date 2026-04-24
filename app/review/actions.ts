@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/data";
 import { bestForOptions, classYearOptions } from "@/lib/constants";
+import { consumeRateLimit, isUuid, isValidLength, sanitizePlainText } from "@/lib/security";
 import { isRatingValue, isSbuEmail } from "@/lib/utils";
 
 export type ReviewFormState = {
@@ -23,14 +24,15 @@ export async function submitReview(
     };
   }
 
-  const quadId = formData.get("quad_id")?.toString().trim() ?? "";
-  const buildingId = formData.get("building_id")?.toString().trim() ?? "";
-  const reviewText = formData.get("review_text")?.toString().trim() ?? "";
-  const prosText = formData.get("pros_text")?.toString().trim() ?? "";
-  const consText = formData.get("cons_text")?.toString().trim() ?? "";
+  const quadId = sanitizePlainText(formData.get("quad_id")?.toString() ?? "");
+  const buildingId = sanitizePlainText(formData.get("building_id")?.toString() ?? "");
+  const reviewText = sanitizePlainText(formData.get("review_text")?.toString() ?? "");
+  const prosText = sanitizePlainText(formData.get("pros_text")?.toString() ?? "");
+  const consText = sanitizePlainText(formData.get("cons_text")?.toString() ?? "");
   const bestFor = formData.get("best_for")?.toString().trim() ?? "";
   const classYear = formData.get("class_year_when_lived")?.toString().trim() ?? "";
-  const wouldLiveAgain = formData.get("would_live_again")?.toString() === "true";
+  const wouldLiveAgainValue = formData.get("would_live_again")?.toString() ?? "";
+  const wouldLiveAgain = wouldLiveAgainValue === "true";
 
   const ratings = {
     overall_rating: formData.get("overall_rating")?.toString() ?? "",
@@ -46,6 +48,20 @@ export async function submitReview(
   if (!quadId || !buildingId || !reviewText) {
     return {
       error: "Quad, building, and review text are required.",
+      success: null
+    };
+  }
+
+  if (!isUuid(quadId) || !isUuid(buildingId)) {
+    return {
+      error: "Choose a valid quad and building.",
+      success: null
+    };
+  }
+
+  if (!isValidLength(reviewText, 10, 2000) || prosText.length > 1000 || consText.length > 1000) {
+    return {
+      error: "Review text must be between 10 and 2000 characters. Pros and cons must be 1000 characters or fewer.",
       success: null
     };
   }
@@ -71,6 +87,13 @@ export async function submitReview(
     };
   }
 
+  if (wouldLiveAgainValue !== "true" && wouldLiveAgainValue !== "false") {
+    return {
+      error: "Pick a valid response for whether you would live there again.",
+      success: null
+    };
+  }
+
   const supabase = await createClient();
   const {
     data: { user }
@@ -79,6 +102,19 @@ export async function submitReview(
   if (!user?.id || !user.email) {
     return {
       error: "You need to sign in with your Stony Brook email before submitting a review.",
+      success: null
+    };
+  }
+
+  if (
+    !consumeRateLimit({
+      key: `review-submit:${user.id}`,
+      limit: 5,
+      windowMs: 60 * 60 * 1000
+    })
+  ) {
+    return {
+      error: "Too many review attempts. Please try again later.",
       success: null
     };
   }
@@ -98,7 +134,7 @@ export async function submitReview(
 
   if (buildingError || !building || building.quad_id !== quadId) {
     return {
-      error: "The selected building does not belong to the selected quad.",
+      error: "Choose a valid building for the selected quad.",
       success: null
     };
   }
@@ -131,7 +167,7 @@ export async function submitReview(
     }
 
     return {
-      error: error.message,
+      error: "Review could not be submitted. Please try again.",
       success: null
     };
   }
