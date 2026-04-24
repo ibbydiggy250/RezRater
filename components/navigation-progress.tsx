@@ -23,8 +23,14 @@ export function startNavigationProgress() {
 export function NavigationProgress() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [isLoading, setIsLoading] = useState(false);
+  const [status, setStatus] = useState<"idle" | "loading" | "finishing">("idle");
   const finishTimer = useRef<number | null>(null);
+  const startedAt = useRef(0);
+  const statusRef = useRef(status);
+
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
 
   useEffect(() => {
     function start() {
@@ -32,7 +38,8 @@ export function NavigationProgress() {
         window.clearTimeout(finishTimer.current);
       }
 
-      setIsLoading(true);
+      startedAt.current = performance.now();
+      setStatus("loading");
     }
 
     function handleClick(event: MouseEvent) {
@@ -46,18 +53,29 @@ export function NavigationProgress() {
     }
 
     window.addEventListener(navigationProgressEvent, start);
-    document.addEventListener("click", handleClick);
+    document.addEventListener("click", handleClick, true);
 
     return () => {
       window.removeEventListener(navigationProgressEvent, start);
-      document.removeEventListener("click", handleClick);
+      document.removeEventListener("click", handleClick, true);
     };
   }, []);
 
   useEffect(() => {
+    if (statusRef.current !== "loading") {
+      return;
+    }
+
+    const elapsed = performance.now() - startedAt.current;
+    const delay = Math.max(420 - elapsed, 120);
+
     finishTimer.current = window.setTimeout(() => {
-      setIsLoading(false);
-    }, 220);
+      setStatus("finishing");
+
+      finishTimer.current = window.setTimeout(() => {
+        setStatus("idle");
+      }, 240);
+    }, delay);
 
     return () => {
       if (finishTimer.current) {
@@ -69,7 +87,9 @@ export function NavigationProgress() {
   return (
     <div
       aria-hidden="true"
-      className={`navigation-progress ${isLoading ? "is-loading" : ""}`}
+      className={`navigation-progress ${status !== "idle" ? "is-loading" : ""} ${
+        status === "finishing" ? "is-finishing" : ""
+      }`}
     />
   );
 }
