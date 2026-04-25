@@ -117,23 +117,6 @@ a {
     animation: page-fade-in 520ms ease-out both;
   }
 
-  @keyframes hero-background-breathe {
-    0%,
-    100% {
-      transform: scale(1);
-    }
-
-    50% {
-      transform: scale(1.04);
-    }
-  }
-
-  .hero-background-breathe {
-    animation: hero-background-breathe 22s ease-in-out infinite;
-    transform-origin: center;
-    will-change: transform;
-  }
-
   [data-scroll-reveal].is-ready {
     opacity: 0;
     transform: translateY(18px);
@@ -149,10 +132,6 @@ a {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-background-breathe {
-    animation: none;
-  }
-
   [data-scroll-reveal] {
     opacity: 1;
     transform: none;
