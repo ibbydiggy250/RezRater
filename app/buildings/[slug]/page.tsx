@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { reviewCategoryLabels } from "@/lib/constants";
 import { getBuildingPageData } from "@/lib/data";
@@ -93,6 +94,11 @@ export default async function BuildingPage({ params }: BuildingPageProps) {
                   <div className="flex flex-wrap gap-2">
                     <span className="pill">{formatRating(review.overall_rating)}</span>
                     <span className="pill">{review.class_year_when_lived}</span>
+                    {review.residence_season && review.residence_year ? (
+                      <span className="pill">
+                        {review.residence_season} {review.residence_year}
+                      </span>
+                    ) : null}
                     <span className="pill">{review.best_for}</span>
                     <span className="pill">
                       {review.would_live_again ? "Would live again" : "Would not live again"}
@@ -105,6 +111,23 @@ export default async function BuildingPage({ params }: BuildingPageProps) {
               </div>
 
               <p className="mt-5 text-base leading-7">{review.review_text}</p>
+
+              {review.photo_urls.length > 0 ? (
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  {review.photo_urls.map((photoUrl) => (
+                    <Image
+                      key={photoUrl}
+                      src={photoUrl}
+                      alt="Dorm photo from review"
+                      width={800}
+                      height={600}
+                      className="aspect-[4/3] w-full rounded-2xl object-cover"
+                      sizes="(min-width: 640px) 50vw, 100vw"
+                      loading="lazy"
+                    />
+                  ))}
+                </div>
+              ) : null}
 
               {review.pros_text ? (
                 <div className="mt-5 rounded-2xl bg-white/75 p-4">

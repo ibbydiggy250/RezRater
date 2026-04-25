@@ -15,6 +15,10 @@ begin
   if not exists (select 1 from pg_type where typname = 'class_year') then
     create type public.class_year as enum ('Freshman', 'Sophomore', 'Junior', 'Senior');
   end if;
+
+  if not exists (select 1 from pg_type where typname = 'residence_season') then
+    create type public.residence_season as enum ('Fall', 'Winter', 'Spring', 'Summer');
+  end if;
 end
 $$;
 
@@ -60,6 +64,9 @@ create table if not exists public.reviews (
   pros_text text,
   cons_text text,
   class_year_when_lived public.class_year not null,
+  residence_season public.residence_season,
+  residence_year integer check (residence_year >= 2000),
+  photo_urls text[] not null default '{}',
   approved boolean not null default true,
   created_at timestamptz not null default timezone('utc', now()),
   unique (user_id, building_id)
@@ -67,6 +74,22 @@ create table if not exists public.reviews (
 
 alter table public.reviews
 add column if not exists approved boolean not null default true;
+
+alter table public.reviews
+add column if not exists residence_season public.residence_season;
+
+alter table public.reviews
+add column if not exists residence_year integer;
+
+alter table public.reviews
+add column if not exists photo_urls text[] not null default '{}';
+
+alter table public.reviews
+drop constraint if exists reviews_residence_year_range;
+
+alter table public.reviews
+add constraint reviews_residence_year_range
+check (residence_year is null or residence_year >= 2000);
 
 alter table public.reviews
 drop constraint if exists reviews_review_text_length;
@@ -168,3 +191,32 @@ create policy "Users can delete own review"
 on public.reviews for delete
 to authenticated
 using (auth.uid() = user_id);
+
+insert into storage.buckets (id, name, public)
+values ('review-photos', 'review-photos', true)
+on conflict (id) do update
+set public = true;
+
+drop policy if exists "Public can read review photos" on storage.objects;
+create policy "Public can read review photos"
+on storage.objects for select
+to anon, authenticated
+using (bucket_id = 'review-photos');
+
+drop policy if exists "Users can upload own review photos" on storage.objects;
+create policy "Users can upload own review photos"
+on storage.objects for insert
+to authenticated
+with check (
+  bucket_id = 'review-photos'
+  and (storage.foldername(name))[1] = auth.uid()::text
+);
+
+drop policy if exists "Users can delete own review photos" on storage.objects;
+create policy "Users can delete own review photos"
+on storage.objects for delete
+to authenticated
+using (
+  bucket_id = 'review-photos'
+  and (storage.foldername(name))[1] = auth.uid()::text
+);

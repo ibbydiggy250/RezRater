@@ -2,7 +2,13 @@
 
 import { useActionState, useState } from "react";
 import type { ReviewFormState } from "@/app/review/actions";
-import { bestForOptions, classYearOptions, ratingFieldDefinitions } from "@/lib/constants";
+import {
+  bestForOptions,
+  classYearOptions,
+  ratingFieldDefinitions,
+  residenceStartYear,
+  residenceSeasonOptions
+} from "@/lib/constants";
 import type { ReviewFormQuad } from "@/lib/types";
 
 type ReviewFormProps = {
@@ -49,6 +55,10 @@ export function ReviewForm({
   const [selectedQuadSlug, setSelectedQuadSlug] = useState(initialSelection.quadSlug);
   const [selectedBuildingId, setSelectedBuildingId] = useState(initialSelection.buildingId);
   const [state, formAction, isPending] = useActionState(action, initialState);
+  const residenceYearOptions = Array.from(
+    { length: new Date().getFullYear() - residenceStartYear + 1 },
+    (_, index) => new Date().getFullYear() - index
+  );
 
   const activeQuad = quads.find((quad) => quad.id === selectedQuadId) ?? quads[0];
   const activeBuildings = activeQuad?.buildings ?? [];
@@ -161,6 +171,35 @@ export function ReviewForm({
         </label>
       </section>
 
+      <section className="grid gap-5 lg:grid-cols-2">
+        <label className="space-y-2 text-sm font-medium">
+          <span>Semester lived there</span>
+          <select name="residence_season" className="field" defaultValue={residenceSeasonOptions[0]} required>
+            {residenceSeasonOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="space-y-2 text-sm font-medium">
+          <span>Year lived there</span>
+          <select
+            name="residence_year"
+            className="field"
+            defaultValue={new Date().getFullYear()}
+            required
+          >
+            {residenceYearOptions.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
+        </label>
+      </section>
+
       <section className="grid gap-5">
         <label className="space-y-2 text-sm font-medium">
           <span>Review</span>
@@ -194,6 +233,20 @@ export function ReviewForm({
             />
           </label>
         </div>
+
+        <label className="space-y-2 text-sm font-medium">
+          <span>Photos</span>
+          <input
+            name="photos"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            className="field file:mr-4 file:rounded-full file:border-0 file:bg-[color:var(--brand-deep)] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
+          />
+          <span className="block text-sm text-[color:var(--muted)]">
+            Upload up to 4 JPG, PNG, or WebP photos.
+          </span>
+        </label>
       </section>
 
       {state.error ? (

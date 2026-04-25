@@ -1,6 +1,7 @@
 export type BuildingType = "Corridor" | "Suite" | "Apartment";
 export type BestFor = "Quiet" | "Social" | "Convenience" | "Suite-style" | "Apartment-style";
 export type ClassYear = "Freshman" | "Sophomore" | "Junior" | "Senior";
+export type ResidenceSeason = "Fall" | "Winter" | "Spring" | "Summer";
 
 export type ReviewRecord = {
   id: string;
@@ -18,6 +19,9 @@ export type ReviewRecord = {
   pros_text: string | null;
   cons_text: string | null;
   class_year_when_lived: ClassYear;
+  residence_season: ResidenceSeason | null;
+  residence_year: number | null;
+  photo_urls: string[];
   created_at: string;
 };
 

@@ -16,6 +16,10 @@ export const bestForOptions = [
 
 export const classYearOptions = ["Freshman", "Sophomore", "Junior", "Senior"] as const;
 
+export const residenceSeasonOptions = ["Fall", "Winter", "Spring", "Summer"] as const;
+
+export const residenceStartYear = 2000;
+
 export const ratingFieldDefinitions = [
   {
     name: "overall_rating",

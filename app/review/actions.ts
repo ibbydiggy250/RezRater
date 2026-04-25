@@ -4,7 +4,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/data";
-import { bestForOptions, classYearOptions } from "@/lib/constants";
+import {
+  bestForOptions,
+  classYearOptions,
+  residenceSeasonOptions,
+  residenceStartYear
+} from "@/lib/constants";
 import { consumeRateLimit, isUuid, isValidLength, sanitizePlainText } from "@/lib/security";
 import { isRatingValue, isSbuEmail } from "@/lib/utils";
 
@@ -12,6 +17,14 @@ export type ReviewFormState = {
   error: string | null;
   success: string | null;
 };
+
+const maxPhotoCount = 4;
+const maxPhotoSize = 5 * 1024 * 1024;
+const allowedPhotoTypes = new Map([
+  ["image/jpeg", "jpg"],
+  ["image/png", "png"],
+  ["image/webp", "webp"]
+]);
 
 export async function submitReview(
   _prevState: ReviewFormState,
@@ -31,8 +44,14 @@ export async function submitReview(
   const consText = sanitizePlainText(formData.get("cons_text")?.toString() ?? "");
   const bestFor = formData.get("best_for")?.toString().trim() ?? "";
   const classYear = formData.get("class_year_when_lived")?.toString().trim() ?? "";
+  const residenceSeason = formData.get("residence_season")?.toString().trim() ?? "";
+  const residenceYearValue = formData.get("residence_year")?.toString().trim() ?? "";
+  const residenceYear = Number(residenceYearValue);
   const wouldLiveAgainValue = formData.get("would_live_again")?.toString() ?? "";
   const wouldLiveAgain = wouldLiveAgainValue === "true";
+  const photos = formData
+    .getAll("photos")
+    .filter((value): value is File => value instanceof File && value.size > 0);
 
   const ratings = {
     overall_rating: formData.get("overall_rating")?.toString() ?? "",
@@ -87,9 +106,43 @@ export async function submitReview(
     };
   }
 
+  if (!residenceSeasonOptions.some((option) => option === residenceSeason)) {
+    return {
+      error: "Pick a valid season for when you lived there.",
+      success: null
+    };
+  }
+
+  const currentYear = new Date().getFullYear();
+
+  if (
+    !Number.isInteger(residenceYear) ||
+    residenceYear < residenceStartYear ||
+    residenceYear > currentYear
+  ) {
+    return {
+      error: `Enter a year from ${residenceStartYear} to ${currentYear}.`,
+      success: null
+    };
+  }
+
   if (wouldLiveAgainValue !== "true" && wouldLiveAgainValue !== "false") {
     return {
       error: "Pick a valid response for whether you would live there again.",
+      success: null
+    };
+  }
+
+  if (photos.length > maxPhotoCount) {
+    return {
+      error: `Upload ${maxPhotoCount} photos or fewer.`,
+      success: null
+    };
+  }
+
+  if (photos.some((photo) => photo.size > maxPhotoSize || !allowedPhotoTypes.has(photo.type))) {
+    return {
+      error: "Photos must be JPG, PNG, or WebP files that are 5 MB or smaller.",
       success: null
     };
   }
@@ -139,7 +192,38 @@ export async function submitReview(
     };
   }
 
+  const reviewId = crypto.randomUUID();
+  const uploadedPhotoPaths: string[] = [];
+  const photoUrls: string[] = [];
+
+  for (const photo of photos) {
+    const extension = allowedPhotoTypes.get(photo.type) ?? "jpg";
+    const path = `${user.id}/${reviewId}/${crypto.randomUUID()}.${extension}`;
+    const { error: uploadError } = await supabase.storage
+      .from("review-photos")
+      .upload(path, photo, {
+        contentType: photo.type,
+        upsert: false
+      });
+
+    if (uploadError) {
+      if (uploadedPhotoPaths.length > 0) {
+        await supabase.storage.from("review-photos").remove(uploadedPhotoPaths);
+      }
+
+      return {
+        error: "Photos could not be uploaded. Please try again.",
+        success: null
+      };
+    }
+
+    uploadedPhotoPaths.push(path);
+    const { data: publicUrlData } = supabase.storage.from("review-photos").getPublicUrl(path);
+    photoUrls.push(publicUrlData.publicUrl);
+  }
+
   const { error } = await supabase.from("reviews").insert({
+    id: reviewId,
     user_id: user.id,
     building_id: buildingId,
     overall_rating: Number(ratings.overall_rating),
@@ -155,10 +239,17 @@ export async function submitReview(
     review_text: reviewText,
     pros_text: prosText || null,
     cons_text: consText || null,
-    class_year_when_lived: classYear
+    class_year_when_lived: classYear,
+    residence_season: residenceSeason,
+    residence_year: residenceYear,
+    photo_urls: photoUrls
   });
 
   if (error) {
+    if (uploadedPhotoPaths.length > 0) {
+      await supabase.storage.from("review-photos").remove(uploadedPhotoPaths);
+    }
+
     if (error.code === "23505") {
       return {
         error: "You already submitted a review for this building.",

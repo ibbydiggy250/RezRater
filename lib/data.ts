@@ -56,6 +56,9 @@ async function getQuadsWithBuildings(): Promise<QuadRecord[]> {
             pros_text,
             cons_text,
             class_year_when_lived,
+            residence_season,
+            residence_year,
+            photo_urls,
             created_at
           )
         )
@@ -79,7 +82,8 @@ async function getQuadsWithBuildings(): Promise<QuadRecord[]> {
         ...review,
         review_text: sanitizePlainText(review.review_text),
         pros_text: review.pros_text ? sanitizePlainText(review.pros_text) : null,
-        cons_text: review.cons_text ? sanitizePlainText(review.cons_text) : null
+        cons_text: review.cons_text ? sanitizePlainText(review.cons_text) : null,
+        photo_urls: review.photo_urls ?? []
       }))
     }))
   }));
@@ -246,6 +250,9 @@ export async function getBuildingPageData(buildingSlug: string): Promise<Buildin
           pros_text,
           cons_text,
           class_year_when_lived,
+          residence_season,
+          residence_year,
+          photo_urls,
           created_at
         )
       `
@@ -292,7 +299,8 @@ export async function getBuildingPageData(buildingSlug: string): Promise<Buildin
       ...review,
       review_text: sanitizePlainText(review.review_text),
       pros_text: review.pros_text ? sanitizePlainText(review.pros_text) : null,
-      cons_text: review.cons_text ? sanitizePlainText(review.cons_text) : null
+      cons_text: review.cons_text ? sanitizePlainText(review.cons_text) : null,
+      photo_urls: review.photo_urls ?? []
     }))
   };
 }
