@@ -53,19 +53,31 @@ export async function requestMagicLink(
   }
 
   const origin =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
     headerStore.get("origin") ??
-    process.env.NEXT_PUBLIC_SITE_URL ??
     "http://localhost:3000";
+  const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(next)}`;
+
+  console.info("[auth] Magic link requested", {
+    origin: new URL(origin).origin,
+    next
+  });
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`
+      emailRedirectTo: redirectTo
     }
   });
 
   if (error) {
+    console.error("[auth] Magic link request failed", {
+      status: error.status,
+      name: error.name,
+      message: error.message
+    });
+
     return {
       error: "Magic link could not be sent. Please try again.",
       success: null

@@ -24,6 +24,8 @@ export const metadata: Metadata = {
     "Browse Stony Brook residence halls by quad, compare buildings, and leave structured dorm reviews with RatemyRez."
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function RootLayout({
   children
 }: Readonly<{

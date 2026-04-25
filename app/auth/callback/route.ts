@@ -19,21 +19,37 @@ function getSafeNextPath(value: string | null) {
   return value;
 }
 
+function getRedirectUrl(requestUrl: URL, next: string) {
+  const safeNextUrl = new URL(next, requestUrl.origin);
+  const redirectUrl = new URL(requestUrl);
+
+  redirectUrl.pathname = safeNextUrl.pathname;
+  redirectUrl.search = safeNextUrl.search;
+  redirectUrl.searchParams.delete("code");
+  redirectUrl.searchParams.delete("token_hash");
+  redirectUrl.searchParams.delete("type");
+  redirectUrl.searchParams.delete("next");
+
+  return redirectUrl;
+}
+
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   const tokenHash = requestUrl.searchParams.get("token_hash");
   const type = requestUrl.searchParams.get("type") as EmailOtpType | null;
   const next = getSafeNextPath(requestUrl.searchParams.get("next"));
-  const redirectUrl = request.nextUrl.clone();
+  const redirectUrl = getRedirectUrl(requestUrl, next);
 
-  redirectUrl.pathname = next;
-  redirectUrl.searchParams.delete("code");
-  redirectUrl.searchParams.delete("token_hash");
-  redirectUrl.searchParams.delete("type");
-  redirectUrl.searchParams.delete("next");
+  console.info("[auth] Callback received", {
+    hasCode: Boolean(code),
+    hasTokenHash: Boolean(tokenHash),
+    type,
+    next
+  });
 
   if (!hasSupabaseEnv()) {
+    console.error("[auth] Callback missing Supabase environment variables");
     return NextResponse.redirect(new URL("/login", requestUrl.origin));
   }
 
@@ -62,17 +78,33 @@ export async function GET(request: NextRequest) {
     });
 
     if (!error) {
+      console.info("[auth] Callback verified OTP");
       return response;
     }
+
+    console.error("[auth] Callback OTP verification failed", {
+      status: error.status,
+      name: error.name,
+      message: error.message
+    });
   }
 
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
+      console.info("[auth] Callback exchanged code for session");
       return response;
     }
+
+    console.error("[auth] Callback code exchange failed", {
+      status: error.status,
+      name: error.name,
+      message: error.message
+    });
   }
+
+  console.error("[auth] Callback did not receive a usable code or token hash");
 
   return NextResponse.redirect(
     new URL(`/login?next=${encodeURIComponent(next)}`, requestUrl.origin)

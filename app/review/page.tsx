@@ -10,6 +10,8 @@ type ReviewPageProps = {
   }>;
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function ReviewPage({ searchParams }: ReviewPageProps) {
   if (!hasSupabaseEnv()) {
     return (
