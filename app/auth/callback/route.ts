@@ -37,7 +37,8 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   const tokenHash = requestUrl.searchParams.get("token_hash");
-  const type = requestUrl.searchParams.get("type") as EmailOtpType | null;
+  const rawType = requestUrl.searchParams.get("type");
+  const type = (rawType === "email" ? "magiclink" : rawType) as EmailOtpType | null;
   const next = getSafeNextPath(requestUrl.searchParams.get("next"));
   const redirectUrl = getRedirectUrl(requestUrl, next);
 
