@@ -1,5 +1,5 @@
 import { LoginForm } from "@/components/login-form";
-import { requestMagicLink } from "@/app/login/actions";
+import { requestLoginCode, verifyLoginCode } from "@/app/login/actions";
 
 type LoginPageProps = {
   searchParams: Promise<{
@@ -19,7 +19,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             Sign in with your SBU email to leave a review.
           </h1>
           <p className="max-w-xl text-lg leading-8 text-[color:var(--muted)]">
-            Authentication is intentionally lightweight for the MVP. Students request a magic link,
+            Authentication is intentionally lightweight for the MVP. Students request a login code,
             sign in with a `@stonybrook.edu` address, and can then submit one review per building.
           </p>
           <div className="grid gap-3 sm:grid-cols-3">
@@ -45,8 +45,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         </div>
 
         <LoginForm
-          action={requestMagicLink}
-          initialState={{ error: null, success: null }}
+          requestCodeAction={requestLoginCode}
+          verifyCodeAction={verifyLoginCode}
+          initialState={{ error: null, success: null, email: "", codeSent: false }}
           next={params.next}
         />
       </div>
