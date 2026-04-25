@@ -1,7 +1,15 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/data";
+
+type ResponseCookies = ReturnType<typeof NextResponse.redirect>["cookies"];
+type CookieOptions = Parameters<ResponseCookies["set"]>[2];
+type CookieToSet = {
+  name: string;
+  value: string;
+  options?: CookieOptions;
+};
 
 function getSafeNextPath(value: string | null) {
   if (!value || !value.startsWith("/") || value.startsWith("//")) {
@@ -29,7 +37,23 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", requestUrl.origin));
   }
 
-  const supabase = await createClient();
+  const response = NextResponse.redirect(redirectUrl);
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet: CookieToSet[]) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options);
+          });
+        }
+      }
+    }
+  );
 
   if (tokenHash && type) {
     const { error } = await supabase.auth.verifyOtp({
@@ -38,7 +62,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!error) {
-      return NextResponse.redirect(redirectUrl);
+      return response;
     }
   }
 
@@ -46,7 +70,7 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      return NextResponse.redirect(redirectUrl);
+      return response;
     }
   }
 
