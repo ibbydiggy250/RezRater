@@ -110,3 +110,9 @@ export async function GET(request: NextRequest) {
     new URL(`/login?next=${encodeURIComponent(next)}`, requestUrl.origin)
   );
 }
+
+export async function HEAD() {
+  return new Response(null, {
+    status: 204
+  });
+}
