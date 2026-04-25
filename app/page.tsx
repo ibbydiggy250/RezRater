@@ -63,16 +63,12 @@ export default async function HomePage() {
   return (
     <div className="pb-16 sm:pb-24">
       <section
-        className="relative isolate -mt-[88px] flex min-h-[100svh] items-center justify-center overflow-hidden px-4 pb-20 pt-[132px] text-white sm:px-6"
+        className="relative isolate -mt-[88px] flex min-h-[100svh] items-center justify-center overflow-hidden bg-cover bg-center px-4 pb-20 pt-[132px] text-white sm:px-6"
+        style={{
+          backgroundImage: `linear-gradient(180deg, rgba(8, 18, 35, 0.34), rgba(8, 18, 35, 0.58)), linear-gradient(90deg, rgba(111, 15, 19, 0.42), rgba(22, 61, 107, 0.22)), url("${heroBackground.src}")`
+        }}
       >
-        <div
-          className="hero-background-breathe absolute -inset-6 -z-30 bg-cover bg-center"
-          style={{
-            backgroundImage: `url("${heroBackground.src}")`
-          }}
-        />
-        <div className="absolute inset-0 -z-20 bg-[linear-gradient(180deg,rgba(0,0,0,0.4),rgba(0,0,0,0.6))]" />
-        <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(111,15,19,0.42),rgba(22,61,107,0.22)),radial-gradient(circle_at_center,rgba(255,255,255,0.14),transparent_42%)]" />
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.18),transparent_42%)]" />
         <div className="mx-auto flex w-full max-w-5xl flex-col items-center text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.32em] text-white/78">
             Stony Brook Housing Guide
