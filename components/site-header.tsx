@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { signOut } from "@/app/login/actions";
-import siteLogo from "@/logos/image.png";
+import siteLogo from "@/logos/ChatGPT Image Apr 25, 2026, 12_22_33 AM.png";
 
 type SiteHeaderProps = {
   userEmail: string | null;
