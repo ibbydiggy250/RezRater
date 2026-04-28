@@ -49,9 +49,16 @@ export default async function RootLayout({
         <Suspense fallback={null}>
           <NavigationProgress />
         </Suspense>
-        <div className="relative min-h-screen">
+        <div className="relative flex min-h-screen flex-col">
           <SiteHeader userEmail={userEmail} />
           <PageTransition>{children}</PageTransition>
+          <footer className="shell py-8 text-center text-sm leading-6 text-[color:var(--muted)]">
+            <p>&copy; 2026 Ibrahim Quaizar. All rights reserved.</p>
+            <p>
+              RateMyRez is a student-made project and is not affiliated with
+              Stony Brook University.
+            </p>
+          </footer>
         </div>
       </body>
     </html>

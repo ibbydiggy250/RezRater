@@ -55,7 +55,7 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
   }, [pathname]);
 
   return (
-    <main ref={mainRef} key={pathname} className="page-transition">
+    <main ref={mainRef} key={pathname} className="page-transition flex-1">
       {children}
     </main>
   );
