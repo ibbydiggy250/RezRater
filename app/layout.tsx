@@ -19,9 +19,9 @@ const bodyFont = Source_Serif_4({
 });
 
 export const metadata: Metadata = {
-  title: "RatemyRez",
+  title: "RateMyRez",
   description:
-    "Browse Stony Brook residence halls by quad, compare buildings, and leave structured dorm reviews with RatemyRez."
+    "Browse Stony Brook residence halls by quad, compare buildings, and leave structured dorm reviews with RateMyRez."
 };
 
 export const dynamic = "force-dynamic";

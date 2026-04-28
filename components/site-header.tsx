@@ -37,17 +37,19 @@ export function SiteHeader({ userEmail }: SiteHeaderProps) {
         />
         <div className="flex items-center justify-between gap-4">
           <Link href="/" className="flex min-w-0 items-center gap-3">
-            <div className="flex h-12 w-14 items-center justify-center rounded-2xl border border-white/70 bg-white/90 shadow-[0_10px_26px_rgba(22,61,107,0.12)]">
+            <div className="relative h-14 w-14 overflow-hidden rounded-2xl border border-white/70 bg-white shadow-[0_10px_26px_rgba(22,61,107,0.12)]">
               <Image
                 src={siteLogo}
                 alt="SBU Seawolves logo"
-                className="h-10 w-12 object-contain"
+                fill
+                sizes="56px"
+                className="object-cover"
                 priority
               />
             </div>
             <div className="min-w-0">
               <p className="truncate font-[family-name:var(--font-heading)] text-lg font-semibold text-white">
-                RatemyRez
+                RateMyRez
               </p>
               <p className="hidden truncate text-sm text-white/72 xl:block">
                 Stony Brook housing decisions with better data

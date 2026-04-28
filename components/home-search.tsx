@@ -130,7 +130,7 @@ export function HomeSearch({
                 setError(null);
               }
             }}
-            placeholder="Search by building or community, like Yang Hall or Kelly"
+            placeholder="Search by building or community"
             className={
               isHero
                 ? "min-w-0 flex-1 rounded-full border border-transparent bg-transparent px-4 py-3 text-sm text-[color:var(--foreground)] outline-none placeholder:text-[color:rgba(18,35,61,0.48)] focus:border-[color:rgba(22,61,107,0.18)] sm:px-5 sm:text-base"

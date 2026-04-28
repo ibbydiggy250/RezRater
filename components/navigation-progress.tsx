@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
-export const navigationProgressEvent = "ratemyrez:navigation-start";
+export const navigationProgressEvent = "RateMyRez:navigation-start";
 
 function isInternalNavigationLink(element: Element | null) {
   const link = element?.closest("a");
