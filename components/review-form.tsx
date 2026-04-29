@@ -43,6 +43,23 @@ function getInitialSelection(quads: ReviewFormQuad[], preselectedBuildingSlug?: 
   };
 }
 
+function getDefaultResidenceRange() {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+
+  if (now.getMonth() <= 4) {
+    return {
+      startYear: currentYear - 1,
+      endYear: currentYear
+    };
+  }
+
+  return {
+    startYear: currentYear,
+    endYear: currentYear + 1
+  };
+}
+
 export function ReviewForm({
   action,
   initialState,
@@ -55,9 +72,10 @@ export function ReviewForm({
   const [selectedQuadSlug, setSelectedQuadSlug] = useState(initialSelection.quadSlug);
   const [selectedBuildingId, setSelectedBuildingId] = useState(initialSelection.buildingId);
   const [state, formAction, isPending] = useActionState(action, initialState);
+  const defaultResidenceRange = getDefaultResidenceRange();
   const residenceYearOptions = Array.from(
-    { length: new Date().getFullYear() - residenceStartYear + 1 },
-    (_, index) => new Date().getFullYear() - index
+    { length: new Date().getFullYear() + 1 - residenceStartYear + 1 },
+    (_, index) => new Date().getFullYear() + 1 - index
   );
 
   const activeQuad = quads.find((quad) => quad.id === selectedQuadId) ?? quads[0];
@@ -171,10 +189,10 @@ export function ReviewForm({
         </label>
       </section>
 
-      <section className="grid gap-5 lg:grid-cols-2">
+      <section className="grid gap-5 lg:grid-cols-4">
         <label className="space-y-2 text-sm font-medium">
-          <span>Semester lived there</span>
-          <select name="residence_season" className="field" defaultValue={residenceSeasonOptions[0]} required>
+          <span>Start semester</span>
+          <select name="residence_start_season" className="field" defaultValue="Fall" required>
             {residenceSeasonOptions.map((option) => (
               <option key={option} value={option}>
                 {option}
@@ -184,11 +202,38 @@ export function ReviewForm({
         </label>
 
         <label className="space-y-2 text-sm font-medium">
-          <span>Year lived there</span>
+          <span>Start year</span>
           <select
-            name="residence_year"
+            name="residence_start_year"
             className="field"
-            defaultValue={new Date().getFullYear()}
+            defaultValue={defaultResidenceRange.startYear}
+            required
+          >
+            {residenceYearOptions.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="space-y-2 text-sm font-medium">
+          <span>End semester</span>
+          <select name="residence_end_season" className="field" defaultValue="Spring" required>
+            {residenceSeasonOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="space-y-2 text-sm font-medium">
+          <span>End year</span>
+          <select
+            name="residence_end_year"
+            className="field"
+            defaultValue={defaultResidenceRange.endYear}
             required
           >
             {residenceYearOptions.map((year) => (

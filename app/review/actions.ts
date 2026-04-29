@@ -26,6 +26,13 @@ const allowedPhotoTypes = new Map([
   ["image/webp", "webp"]
 ]);
 
+const residenceSeasonOrder = new Map([
+  ["Winter", 1],
+  ["Spring", 2],
+  ["Summer", 3],
+  ["Fall", 4]
+]);
+
 export async function submitReview(
   _prevState: ReviewFormState,
   formData: FormData
@@ -44,9 +51,12 @@ export async function submitReview(
   const consText = sanitizePlainText(formData.get("cons_text")?.toString() ?? "");
   const bestFor = formData.get("best_for")?.toString().trim() ?? "";
   const classYear = formData.get("class_year_when_lived")?.toString().trim() ?? "";
-  const residenceSeason = formData.get("residence_season")?.toString().trim() ?? "";
-  const residenceYearValue = formData.get("residence_year")?.toString().trim() ?? "";
-  const residenceYear = Number(residenceYearValue);
+  const residenceStartSeason = formData.get("residence_start_season")?.toString().trim() ?? "";
+  const residenceStartYearValue = formData.get("residence_start_year")?.toString().trim() ?? "";
+  const submittedResidenceStartYear = Number(residenceStartYearValue);
+  const residenceEndSeason = formData.get("residence_end_season")?.toString().trim() ?? "";
+  const residenceEndYearValue = formData.get("residence_end_year")?.toString().trim() ?? "";
+  const submittedResidenceEndYear = Number(residenceEndYearValue);
   const wouldLiveAgainValue = formData.get("would_live_again")?.toString() ?? "";
   const wouldLiveAgain = wouldLiveAgainValue === "true";
   const photos = formData
@@ -106,22 +116,42 @@ export async function submitReview(
     };
   }
 
-  if (!residenceSeasonOptions.some((option) => option === residenceSeason)) {
+  if (
+    !residenceSeasonOptions.some((option) => option === residenceStartSeason) ||
+    !residenceSeasonOptions.some((option) => option === residenceEndSeason)
+  ) {
     return {
-      error: "Pick a valid season for when you lived there.",
+      error: "Pick valid start and end semesters for when you lived there.",
       success: null
     };
   }
 
   const currentYear = new Date().getFullYear();
+  const maxResidenceYear = currentYear + 1;
 
   if (
-    !Number.isInteger(residenceYear) ||
-    residenceYear < residenceStartYear ||
-    residenceYear > currentYear
+    !Number.isInteger(submittedResidenceStartYear) ||
+    !Number.isInteger(submittedResidenceEndYear) ||
+    submittedResidenceStartYear < residenceStartYear ||
+    submittedResidenceEndYear < residenceStartYear ||
+    submittedResidenceStartYear > maxResidenceYear ||
+    submittedResidenceEndYear > maxResidenceYear
   ) {
     return {
-      error: `Enter a year from ${residenceStartYear} to ${currentYear}.`,
+      error: `Enter years from ${residenceStartYear} to ${maxResidenceYear}.`,
+      success: null
+    };
+  }
+
+  const startSeasonOrder = residenceSeasonOrder.get(residenceStartSeason) ?? 0;
+  const endSeasonOrder = residenceSeasonOrder.get(residenceEndSeason) ?? 0;
+
+  if (
+    submittedResidenceEndYear < submittedResidenceStartYear ||
+    (submittedResidenceEndYear === submittedResidenceStartYear && endSeasonOrder < startSeasonOrder)
+  ) {
+    return {
+      error: "End semester cannot be before start semester.",
       success: null
     };
   }
@@ -240,8 +270,10 @@ export async function submitReview(
     pros_text: prosText || null,
     cons_text: consText || null,
     class_year_when_lived: classYear,
-    residence_season: residenceSeason,
-    residence_year: residenceYear,
+    residence_start_season: residenceStartSeason,
+    residence_start_year: submittedResidenceStartYear,
+    residence_end_season: residenceEndSeason,
+    residence_end_year: submittedResidenceEndYear,
     photo_urls: photoUrls
   });
 

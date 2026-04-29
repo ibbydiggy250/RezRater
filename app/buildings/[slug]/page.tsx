@@ -3,7 +3,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { reviewCategoryLabels } from "@/lib/constants";
 import { getBuildingPageData } from "@/lib/data";
-import { formatDateLabel, formatRating } from "@/lib/utils";
+import { formatDateLabel, formatRating, formatResidenceRange } from "@/lib/utils";
 
 type BuildingPageProps = {
   params: Promise<{ slug: string }>;
@@ -87,81 +87,86 @@ export default async function BuildingPage({ params }: BuildingPageProps) {
             </h2>
           </div>
 
-          {building.reviews.map((review) => (
-            <article key={review.id} className="panel-strong p-4 sm:p-6">
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div className="space-y-2">
-                  <div className="flex flex-wrap gap-2">
-                    <span className="pill">{formatRating(review.overall_rating)}</span>
-                    <span className="pill">{review.class_year_when_lived}</span>
-                    {review.residence_season && review.residence_year ? (
+          {building.reviews.map((review) => {
+            const residenceRange = formatResidenceRange({
+              startSeason: review.residence_start_season,
+              startYear: review.residence_start_year,
+              endSeason: review.residence_end_season,
+              endYear: review.residence_end_year
+            });
+
+            return (
+              <article key={review.id} className="panel-strong p-4 sm:p-6">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap gap-2">
+                      <span className="pill">{formatRating(review.overall_rating)}</span>
+                      <span className="pill">{review.class_year_when_lived}</span>
+                      {residenceRange ? <span className="pill">{residenceRange}</span> : null}
+                      <span className="pill">{review.best_for}</span>
                       <span className="pill">
-                        {review.residence_season} {review.residence_year}
+                        {review.would_live_again ? "Would live again" : "Would not live again"}
                       </span>
-                    ) : null}
-                    <span className="pill">{review.best_for}</span>
-                    <span className="pill">
-                      {review.would_live_again ? "Would live again" : "Would not live again"}
-                    </span>
+                    </div>
+                    <p className="text-sm text-[color:var(--muted)]">
+                      Posted {formatDateLabel(review.created_at)}
+                    </p>
                   </div>
-                  <p className="text-sm text-[color:var(--muted)]">
-                    Posted {formatDateLabel(review.created_at)}
-                  </p>
                 </div>
-              </div>
 
-              <p className="mt-5 text-base leading-7">{review.review_text}</p>
+                <p className="mt-5 text-base leading-7">{review.review_text}</p>
 
-              {review.photo_urls.length > 0 ? (
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                  {review.photo_urls.map((photoUrl) => (
-                    <Image
-                      key={photoUrl}
-                      src={photoUrl}
-                      alt="Dorm photo from review"
-                      width={800}
-                      height={600}
-                      className="aspect-[4/3] w-full rounded-2xl object-cover"
-                      sizes="(min-width: 640px) 50vw, 100vw"
-                      loading="lazy"
-                    />
+                {review.photo_urls.length > 0 ? (
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                    {review.photo_urls.map((photoUrl) => (
+                      <Image
+                        key={photoUrl}
+                        src={photoUrl}
+                        alt="Dorm photo from review"
+                        width={800}
+                        height={600}
+                        className="aspect-[4/3] w-full rounded-2xl object-cover"
+                        sizes="(min-width: 640px) 50vw, 100vw"
+                        loading="lazy"
+                      />
+                    ))}
+                  </div>
+                ) : null}
+
+                {review.pros_text ? (
+                  <div className="mt-5 rounded-2xl bg-white/75 p-4">
+                    <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[color:var(--brand-accent)]">
+                      Pros
+                    </p>
+                    <p className="mt-2 text-sm text-[color:var(--foreground)]">{review.pros_text}</p>
+                  </div>
+                ) : null}
+
+                {review.cons_text ? (
+                  <div className="mt-4 rounded-2xl bg-white/75 p-4">
+                    <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[color:var(--danger)]">
+                      Cons
+                    </p>
+                    <p className="mt-2 text-sm text-[color:var(--foreground)]">{review.cons_text}</p>
+                  </div>
+                ) : null}
+
+                <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  {reviewCategoryLabels.map((category) => (
+                    <div key={category.key} className="rounded-2xl bg-white/80 px-4 py-3">
+                      <p className="text-xs uppercase tracking-[0.16em] text-[color:var(--muted)]">
+                        {category.label}
+                      </p>
+                      <p className="mt-2 text-lg font-semibold">
+                        {review[category.key]}
+                        <span className="text-sm text-[color:var(--muted)]"> / 5</span>
+                      </p>
+                    </div>
                   ))}
                 </div>
-              ) : null}
-
-              {review.pros_text ? (
-                <div className="mt-5 rounded-2xl bg-white/75 p-4">
-                  <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[color:var(--brand-accent)]">
-                    Pros
-                  </p>
-                  <p className="mt-2 text-sm text-[color:var(--foreground)]">{review.pros_text}</p>
-                </div>
-              ) : null}
-
-              {review.cons_text ? (
-                <div className="mt-4 rounded-2xl bg-white/75 p-4">
-                  <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[color:var(--danger)]">
-                    Cons
-                  </p>
-                  <p className="mt-2 text-sm text-[color:var(--foreground)]">{review.cons_text}</p>
-                </div>
-              ) : null}
-
-              <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                {reviewCategoryLabels.map((category) => (
-                  <div key={category.key} className="rounded-2xl bg-white/80 px-4 py-3">
-                    <p className="text-xs uppercase tracking-[0.16em] text-[color:var(--muted)]">
-                      {category.label}
-                    </p>
-                    <p className="mt-2 text-lg font-semibold">
-                      {review[category.key]}
-                      <span className="text-sm text-[color:var(--muted)]"> / 5</span>
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
 
           {building.reviews.length === 0 ? (
             <div className="panel p-8 text-center">

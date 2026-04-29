@@ -161,7 +161,9 @@ export function HomeSearch({
               className="rounded-full border border-[color:var(--border)] bg-white/90 px-4 py-2 text-left text-sm transition hover:border-[color:rgba(166,34,49,0.18)] hover:bg-white"
             >
               <span className="font-semibold text-[color:var(--foreground)]">{result.name}</span>
-              <span className="ml-2 text-[color:var(--muted)]">{result.subtitle}</span>
+              {result.subtitle !== result.type ? (
+                <span className="ml-2 text-[color:var(--muted)]">{result.subtitle}</span>
+              ) : null}
               <span
                 className={
                   result.type === "Community"

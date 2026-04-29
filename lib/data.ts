@@ -56,8 +56,10 @@ async function getQuadsWithBuildings(): Promise<QuadRecord[]> {
             pros_text,
             cons_text,
             class_year_when_lived,
-            residence_season,
-            residence_year,
+            residence_start_season,
+            residence_start_year,
+            residence_end_season,
+            residence_end_year,
             photo_urls,
             created_at
           )
@@ -250,8 +252,10 @@ export async function getBuildingPageData(buildingSlug: string): Promise<Buildin
           pros_text,
           cons_text,
           class_year_when_lived,
-          residence_season,
-          residence_year,
+          residence_start_season,
+          residence_start_year,
+          residence_end_season,
+          residence_end_year,
           photo_urls,
           created_at
         )

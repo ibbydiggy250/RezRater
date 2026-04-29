@@ -19,8 +19,10 @@ export type ReviewRecord = {
   pros_text: string | null;
   cons_text: string | null;
   class_year_when_lived: ClassYear;
-  residence_season: ResidenceSeason | null;
-  residence_year: number | null;
+  residence_start_season: ResidenceSeason | null;
+  residence_start_year: number | null;
+  residence_end_season: ResidenceSeason | null;
+  residence_end_year: number | null;
   photo_urls: string[];
   created_at: string;
 };

@@ -33,6 +33,27 @@ export function formatDateLabel(value: string | null) {
   }).format(new Date(value));
 }
 
+export function formatResidenceRange({
+  startSeason,
+  startYear,
+  endSeason,
+  endYear
+}: {
+  startSeason: string | null;
+  startYear: number | null;
+  endSeason: string | null;
+  endYear: number | null;
+}) {
+  if (!startSeason || !startYear || !endSeason || !endYear) {
+    return null;
+  }
+
+  const startLabel = `${startSeason} ${startYear}`;
+  const endLabel = `${endSeason} ${endYear}`;
+
+  return startLabel === endLabel ? startLabel : `${startLabel} - ${endLabel}`;
+}
+
 export function isSbuEmail(email: string) {
   return email.toLowerCase().endsWith("@stonybrook.edu");
 }
