@@ -99,3 +99,13 @@
  GET /icon.png?bd5e6260ae098e1a 200 in 70ms
  GET /login 200 in 271ms
  GET /icon.png?bd5e6260ae098e1a 200 in 72ms
+ ✓ Compiled in 925ms (270 modules)
+ GET / 200 in 329ms
+ ✓ Compiled in 2.6s (793 modules)
+ GET / 200 in 843ms
+ GET /quads 200 in 1496ms
+ ○ Compiling /icon.png ...
+ ✓ Compiled /icon.png in 909ms (539 modules)
+ GET /icon.png?bd5e6260ae098e1a 200 in 1339ms
+ GET /quads 200 in 2014ms
+ GET /icon.png?bd5e6260ae098e1a 200 in 71ms
